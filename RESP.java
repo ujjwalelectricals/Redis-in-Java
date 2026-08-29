@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,15 +30,19 @@ public final class RESP {
         return result;
     }
 
-    public static void simple(java.io.OutputStream out, String value) throws IOException {
+    public static void simple(OutputStream out, String value) throws IOException {
         write(out, "+" + value + "\r\n");
     }
 
-    public static void error(java.io.OutputStream out, String value) throws IOException {
+    public static void error(OutputStream out, String value) throws IOException {
         write(out, "-ERR " + value + "\r\n");
     }
 
-    public static void bulk(java.io.OutputStream out, String value) throws IOException {
+    public static void integer(OutputStream out, long value) throws IOException {
+        write(out, ":" + value + "\r\n");
+    }
+
+    public static void bulk(OutputStream out, String value) throws IOException {
         if (value == null) { write(out, "$-1\r\n"); return; }
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         write(out, "$" + bytes.length + "\r\n");
@@ -45,7 +50,7 @@ public final class RESP {
         write(out, "\r\n");
     }
 
-    private static void write(java.io.OutputStream out, String text) throws IOException {
+    private static void write(OutputStream out, String text) throws IOException {
         out.write(text.getBytes(StandardCharsets.UTF_8));
     }
 
