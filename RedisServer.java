@@ -4,14 +4,12 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RedisServer {
     private static final int PORT = 6379;
-    private static final Map<String, String> store = new ConcurrentHashMap<>();
+    private static final ExpiringStore store = new ExpiringStore();
     private static final ExecutorService clients = Executors.newVirtualThreadPerTaskExecutor();
 
     public static void main(String[] args) throws IOException {
@@ -19,7 +17,7 @@ public class RedisServer {
         CommandRegistry registry = createRegistry();
 
         try (ServerSocket server = new ServerSocket(PORT)) {
-            System.out.println("MiniRedis ready. Commands: PING SET GET DEL EXISTS");
+            System.out.println("MiniRedis ready. Commands: PING SET GET DEL EXISTS TTL");
             while (true) {
                 Socket socket = server.accept();
                 clients.submit(() -> handleClient(socket, registry));
@@ -34,6 +32,7 @@ public class RedisServer {
         registry.register(new GetCommand(store));
         registry.register(new DelCommand(store));
         registry.register(new ExistsCommand(store));
+        registry.register(new TtlCommand(store));
         return registry;
     }
 
